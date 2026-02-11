@@ -1,0 +1,123 @@
+esphome:
+  name: bed-sensor
+  friendly_name: Датчик кровати
+
+esp32:
+  board: esp32-c6-devkitc-1
+  framework:
+    type: esp-idf
+
+# Home Assistant API
+api:
+  encryption:
+    key: "xxx"
+
+ota:
+  - platform: esphome
+    password: "xxx"
+
+network:
+  enable_ipv6: true
+
+openthread:
+  device_type: FTD
+  tlv: !secret thread_tlv
+
+substitutions:
+  sensor_right: GPIO1
+  sensor_left: GPIO6
+
+sensor:
+    # Изменение напряжения справа
+  - name: "Right side"
+    platform: adc
+    pin: $sensor_right
+    id: bed_sensor_right
+    attenuation: 12db
+    internal: true
+    update_interval: 500ms
+    filters:
+      - sliding_window_moving_average:
+          window_size: 50
+          send_every: 10
+      - delta: 0.005
+
+    # Измерение напряжения слева
+  - name: "Left side"
+    platform: adc
+    pin: $sensor_left
+    id: bed_sensor_left
+    attenuation: 12db
+    internal: true
+    update_interval: 500ms
+    filters:
+      - sliding_window_moving_average:
+          window_size: 50
+          send_every: 10
+      - delta: 0.005
+
+# Настройки порогов
+number:
+  - platform: template
+    name: "Right threshold"
+    id: right_threshold
+    mode: box
+    optimistic: true
+    restore_value: true
+    min_value: 0
+    max_value: 2.0
+    step: 0.001
+    unit_of_measurement: v
+
+  - platform: template
+    name: "Left threshold"
+    id: left_threshold
+    mode: BOX
+    optimistic: true
+    restore_value: true
+    min_value: 0
+    max_value: 2.0
+    step: 0.001
+    unit_of_measurement: v
+
+  - platform: template
+    name: "On delay"
+    id: on_delay
+    mode: BOX
+    optimistic: True
+    restore_value: True
+    min_value: 0.5
+    max_value: 60
+    step: 0.5
+    unit_of_measurement: мин
+
+  - platform: template
+    name: "Off delay"
+    id: off_delay
+    mode: BOX
+    optimistic: True
+    restore_value: True
+    min_value: 0.5
+    max_value: 60
+    step: 0.5
+    unit_of_measurement: мин
+
+# Бинарные сенсоры
+binary_sensor:
+  - platform: template
+    name: "Right"
+    id: right_side_raw
+    lambda: |-
+      return id(bed_sensor_right).state > id(right_threshold).state;
+    filters:
+      - delayed_on: !lambda 'return id(on_delay).state * 60 * 1000;'
+      - delayed_off: !lambda 'return id(off_delay).state * 60 * 1000;'
+
+  - platform: template
+    name: "Left"
+    id: left_side_raw
+    lambda: |-
+      return id(bed_sensor_left).state > id(left_threshold).state;
+    filters:
+      - delayed_on: !lambda 'return id(on_delay).state * 60 * 1000;'
+      - delayed_off: !lambda 'return id(off_delay).state * 60 * 1000;'
