@@ -1,7 +1,8 @@
 # ESPHome-bed-presence-sensor
-Smart Bed Presence Sensor (Matter/Thread Ready) An intelligent bed presence sensor based on the ESP32-C6 microcontroller. The device uses strain gauges (FSR or similar) to separately monitor the two halves of the bed.
+Smart Bed Presence Sensor (Thread Ready) An intelligent bed presence sensor based on the ESP32-C6 microcontroller. The device uses strain gauges (FSR or similar) to separately monitor the two halves of the bed.
 
 **Features**
+
 • ESP32-C6 & OpenThread: Support for the modern Thread protocol for stable and energy-efficient operation in the smart home ecosystem.
 
 • Dual-zone monitoring: Separate sensors for the left and right sides of bed.
