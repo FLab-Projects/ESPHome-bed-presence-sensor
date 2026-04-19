@@ -127,7 +127,7 @@ action:
 ```
 ### 📸 Screenshots
 
-
+![Dashboard](Screenshot.png)
 
 📄 License
 
