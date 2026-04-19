@@ -1,8 +1,8 @@
 # 🛏️ Smart Bed Sensor with FSR and ESPHome
 
-[![ESPHome](https://img.shields.io/badge/ESPHome-2025.4+-blue.svg)](https://esphome.io/)
-[![ESP32-C6](https://img.shields.io/badge/ESP32--C6-Thread-green.svg)](https://www.espressif.com/en/products/socs/esp32-c6)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.4+-41bdf5.svg)](https://www.home-assistant.io/)
+[![ESPHome](https://img.shields.io/badge/ESPHome-2024.6%2B-blue?logo=esphome)](https://esphome.io)
+[![Thread](https://img.shields.io/badge/Thread-FTD-0099FF?logo=thread)](https://openthread.io)
+[![ESP32-C6](https://img.shields.io/badge/ESP32--C6-RISC--V-green.svg)](https://www.espressif.com)
 
 A dual-zone bed occupancy sensor based on Force Sensitive Resistors (FSR) and ESP32-C6. Fast detection, false-trigger protection, and seamless Home Assistant integration via ESPHome.
 
