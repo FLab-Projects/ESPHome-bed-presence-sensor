@@ -71,6 +71,19 @@ adc:
 - Raw values are hidden from HA (internal: true).
 - Binary sensor uses this fast data to react in fractions of a second.
 
+### Smoothed channel for graphs
+
+```yaml
+template:
+  lambda: return id(fast_sensor).state;
+  update_interval: 1s
+  filters:
+    - sliding_window_moving_average (window 30, send every 15)
+    - delta: 0.005
+```
+ - Appears in HA as sensor.right_voltage.
+ - Helps you visually tune the thresholds.
+
 ### Hysteresis & Delays
 
  - ON threshold – voltage above which the bed is considered occupied.
