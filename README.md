@@ -91,7 +91,7 @@ template:
  - Turn-on delay – how many seconds the value must stay above threshold before switching to on (typical 0.2–0.5 s).
  - Turn-off delay – how many minutes the value must stay below threshold before switching to off (e.g., 5 min).
 
-### ⚙️ Configuration in Home Assistant
+## ⚙️ Configuration in Home Assistant
 
 All settings are exposed as number entities:
 
