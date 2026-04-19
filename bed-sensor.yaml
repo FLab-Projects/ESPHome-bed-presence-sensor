@@ -5,13 +5,13 @@ esphome:
     priority: 200
     then:
       - lambda: |-
-          delay(2000);  // стабилизация ADC
+          delay(2000);  // ждём стабилизации ADC
           float zero_r = id(bed_sensor_right).state;
           float zero_l = id(bed_sensor_left).state;
-          id(right_threshold_on).update(zero_r + 0.07);
-          id(right_threshold_off).update(zero_r + 0.03);
-          id(left_threshold_on).update(zero_l + 0.07);
-          id(left_threshold_off).update(zero_l + 0.03);
+          id(right_threshold_on).make_call().set_value(zero_r + 0.07).perform();
+          id(right_threshold_off).make_call().set_value(zero_r + 0.03).perform();
+          id(left_threshold_on).make_call().set_value(zero_l + 0.07).perform();
+          id(left_threshold_off).make_call().set_value(zero_l + 0.03).perform();
 
 esp32:
   board: esp32-c6-devkitc-1
