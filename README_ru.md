@@ -124,6 +124,8 @@ action:
 ```
 ### 📸 Скриншоты
 
+![Dashboard](Screenshot.png)
+![Dashboard](In_bed_screenshot.png)
 
 📄 Лицензия
 
