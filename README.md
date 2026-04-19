@@ -128,6 +128,7 @@ action:
 ### 📸 Screenshots
 
 ![Dashboard](Screenshot.png)
+![Dashboard](In_bed_screenshot.png)
 
 📄 License
 
