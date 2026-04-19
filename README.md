@@ -130,7 +130,7 @@ action:
 ![Dashboard](Screenshot.png)
 ![Dashboard](In_bed_screenshot.png)
 
-📄 License
+## 📄 License
 
 MIT © 2026 [F-Lab]
 Made with ❤️ by f1x6r
