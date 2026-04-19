@@ -127,7 +127,7 @@ action:
 ![Dashboard](Screenshot.png)
 ![Dashboard](In_bed_screenshot.png)
 
-📄 Лицензия
+## 📄 Лицензия
 
 MIT © 2026 [F-Lab]
 Made with ❤️ by f1x6r
