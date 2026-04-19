@@ -88,8 +88,8 @@ number.left_on_threshold
 number.left_off_threshold
 number.turn_on_delay (seconds)
 number.turn_off_delay (minutes)
-Tuning thresholds:
 
+Tuning thresholds:
 Open the graph for sensor.right_voltage in HA.
 Observe the voltage with an empty bed and with a person lying down.
 Set the ON threshold slightly below the “occupied” value, and OFF threshold slightly above the “empty” value.
@@ -119,5 +119,4 @@ action:
 📄 License
 
 MIT © 2026 [F-Lab]
-
 Made with ❤️ by f1x6r
