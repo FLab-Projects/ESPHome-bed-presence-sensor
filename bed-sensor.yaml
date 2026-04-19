@@ -1,6 +1,17 @@
 esphome:
   name: bed-sensor
   friendly_name: Датчик кровати
+  on_boot: # Калибруем датчики при загрузке
+    priority: 200
+    then:
+      - lambda: |-
+          delay(2000);  // стабилизация ADC
+          float zero_r = id(bed_sensor_right).state;
+          float zero_l = id(bed_sensor_left).state;
+          id(right_threshold_on).update(zero_r + 0.07);
+          id(right_threshold_off).update(zero_r + 0.03);
+          id(left_threshold_on).update(zero_l + 0.07);
+          id(left_threshold_off).update(zero_l + 0.03);
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -10,114 +21,178 @@ esp32:
 # Home Assistant API
 api:
   encryption:
-    key: "xxx"
+    key: "***" # Ваш ключ шифрования
 
 ota:
   - platform: esphome
-    password: "xxx"
+    password: "***" # Ваш пароль OTA
 
 network:
   enable_ipv6: true
 
 openthread:
   device_type: FTD
-  tlv: !secret thread_tlv
+  tlv: !secret thread_tlv # Ваш TLV ключ от сети Thread
 
+# Испольщуем пины с поддержкой ADC (У меня ESP32C6)
 substitutions:
   sensor_right: GPIO1
   sensor_left: GPIO6
 
 sensor:
-    # Изменение напряжения справа
-  - name: "Right side"
-    platform: adc
+    # Изменение напряжения с правого датчика
+  - platform: adc
     pin: $sensor_right
     id: bed_sensor_right
     attenuation: 12db
-    internal: true
-    update_interval: 500ms
+    update_interval: 100ms
+    samples: 4
     filters:
-      - sliding_window_moving_average:
-          window_size: 50
-          send_every: 10
-      - delta: 0.005
+      - median:
+          window_size: 3
+          send_every: 1
+      - throttle: 200ms
+    internal: true
 
-    # Измерение напряжения слева
-  - name: "Left side"
-    platform: adc
+    # Измерение напряжения с левого датчика
+  - platform: adc
     pin: $sensor_left
     id: bed_sensor_left
     attenuation: 12db
+    update_interval: 100ms
+    samples: 4
+    filters:
+      - median:
+          window_size: 3
+          send_every: 1
+      - throttle: 200ms
     internal: true
-    update_interval: 500ms
+
+ # Сглаженный сенсор для отображения в Home Assistant
+  - platform: template
+    name: "Правый Напряжение"
+    id: bed_sensor_right_smooth
+    lambda: return id(bed_sensor_right).state;
+    update_interval: 1s
     filters:
       - sliding_window_moving_average:
-          window_size: 50
-          send_every: 10
+          window_size: 30
+          send_every: 15
       - delta: 0.005
+    unit_of_measurement: V
+    accuracy_decimals: 3
+
+  - platform: template
+    name: "Левый Напряжение"
+    id: bed_sensor_left_smooth
+    lambda: return id(bed_sensor_left).state;
+    update_interval: 1s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 30
+          send_every: 15
+      - delta: 0.005
+    unit_of_measurement: V
+    accuracy_decimals: 3
 
 # Настройки порогов
 number:
   - platform: template
-    name: "Right threshold"
-    id: right_threshold
+    name: "Правый Порог ВКЛ"
+    id: right_threshold_on
     mode: box
     optimistic: true
     restore_value: true
     min_value: 0
     max_value: 2.0
     step: 0.001
-    unit_of_measurement: v
+    unit_of_measurement: V
 
   - platform: template
-    name: "Left threshold"
-    id: left_threshold
+    name: "Правый Порог ВЫКЛ"
+    id: right_threshold_off
+    mode: box
+    optimistic: true
+    restore_value: true
+    min_value: 0
+    max_value: 2.0
+    step: 0.001
+    unit_of_measurement: V
+
+  - platform: template
+    name: "Левый Порог ВКЛ"
+    id: left_threshold_on
     mode: BOX
     optimistic: true
     restore_value: true
     min_value: 0
     max_value: 2.0
     step: 0.001
-    unit_of_measurement: v
+    unit_of_measurement: V
 
   - platform: template
-    name: "On delay"
+    name: "Левый Порог ВЫКЛ"
+    id: left_threshold_off
+    mode: BOX
+    optimistic: true
+    restore_value: true
+    min_value: 0
+    max_value: 2.0
+    step: 0.001
+    unit_of_measurement: V
+
+  - platform: template
+    name: "Задержка включения" # Общая для обеих датчиков
     id: on_delay
     mode: BOX
     optimistic: True
     restore_value: True
-    min_value: 0.5
-    max_value: 60
-    step: 0.5
-    unit_of_measurement: мин
+    min_value: 0.1
+    max_value: 2.0
+    step: 0.1
+    unit_of_measurement: сек
 
   - platform: template
-    name: "Off delay"
+    name: "Задержка выключения" # Общая для обеих датчиков
     id: off_delay
     mode: BOX
     optimistic: True
     restore_value: True
-    min_value: 0.5
+    min_value: 1
     max_value: 60
-    step: 0.5
+    step: 1
     unit_of_measurement: мин
 
 # Бинарные сенсоры
 binary_sensor:
   - platform: template
-    name: "Right"
+    name: "Правый"
     id: right_side_raw
     lambda: |-
-      return id(bed_sensor_right).state > id(right_threshold).state;
+      static bool state = false;
+      float val = id(bed_sensor_right_smooth).state;  // <-- используем сглаженное (можно заменить на значение без фильтрации - "bed_sensor_right")
+      if (!state && val > id(right_threshold_on).state) {
+        state = true;
+      } else if (state && val < id(right_threshold_off).state) {
+        state = false;
+      }
+      return state;
     filters:
-      - delayed_on: !lambda 'return id(on_delay).state * 60 * 1000;'
+      - delayed_on: !lambda 'return id(on_delay).state * 1000;'
       - delayed_off: !lambda 'return id(off_delay).state * 60 * 1000;'
 
   - platform: template
-    name: "Left"
+    name: "Левый"
     id: left_side_raw
     lambda: |-
-      return id(bed_sensor_left).state > id(left_threshold).state;
+      static bool state = false;
+      float val = id(bed_sensor_left_smooth).state;  // <-- используем сглаженное (можно заменить на значение без фильтрации - "bed_sensor_left")
+      if (!state && val > id(left_threshold_on).state) {
+        state = true;
+      } else if (state && val < id(left_threshold_off).state) {
+        state = false;
+      }
+       return state;
     filters:
-      - delayed_on: !lambda 'return id(on_delay).state * 60 * 1000;'
+      - delayed_on: !lambda 'return id(on_delay).state * 1000;'
       - delayed_off: !lambda 'return id(off_delay).state * 60 * 1000;'
